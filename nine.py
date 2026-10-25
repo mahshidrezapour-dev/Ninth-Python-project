@@ -12,7 +12,7 @@ def store(product =None):
     while True:
         try:
             cost =float(input("cost in toomans>>> "))
-            if cost<0:
+            if cost<=0:
                 print("cost must be positive")
                 continue
             break
@@ -43,7 +43,7 @@ def store(product =None):
             if count_in_shelf < 0 or inventory < 0:
                 print("inventory cannot be negative")
                 continue
-          if  inventory < count_in_shelf:
+            if  inventory < count_in_shelf:
                 print("inventory cannot be less than she;f stock")
                 continue
             break
@@ -114,7 +114,10 @@ while True:
         print("please enter a valid integer")
 for x in range (i):
     shelf=store()
-    all_products[shelf["product"]]=shelf
+    if shelf["produst"]in all_products:
+        print("this product already exists")
+    else:
+        all_products[shelf["product"]]=shelf
 while True:
     employee=input("enter what you need >>>")
     employee=employee.strip().casefold()
@@ -127,7 +130,6 @@ while True:
                 shelf=store(question1)
                 all_products[shelf["product"]]=shelf
                 print("seuccessfully added")
-                available=True
         elif employee==table[1]:
             found=False
             question2=input("what do you want to delete? ").strip().casefold()
@@ -183,9 +185,10 @@ while True:
                 continue
             
             totalprice=[]
-            
+            sold_anything=False
 
             for product , count in zip(question6 , question7):
+ 
                 found=False
                 for item in all_products:
                     if all_products[item]["product"]==product:
@@ -201,13 +204,14 @@ while True:
                             total=all_products[item]["cost"]*count
                             buying["basket"]+=total
                             all_products[item]["sale_times"]+=1
+                            sold_anything=True
                             
                         else: 
-                            if count=0:
+                            if countinshelf == 0:
                                 print("this product is out of stock")
                                 continue
                             question8=input(f"only {countinshelf} is available . do you want it? ")
-                            if question8.lower() in ["yes","y","yeah","ok"]:
+                            if question8.strip().casefold() in ["yes","y","yeah","ok"]:
                                 all_products[item]["count_in_shelf"]-=countinshelf
                                 all_products[item]["inventory"]-=countinshelf
                                 all_products[item]["available"] = (all_products[item]["count_in_shelf"] > 0)
@@ -215,6 +219,7 @@ while True:
                                 buying["basket"]+=total
                                 totalprice.append(all_products[item]["cost"]*countinshelf)
                                 all_products[item]["sale_times"]+=1
+                                sold_anything=True
                             else:
                                 pass
                     else:
@@ -223,7 +228,10 @@ while True:
                     print(f"{product} not found")
             finalprice=sum(totalprice)
             print(f"final price = {finalprice}")
-            salehistory.append(buying)
+            if sold_anything:
+                salehistory.append(buying)
+            else:
+                print("no product were sild")
 
         elif employee==table[4]:
             history=sale_history()
@@ -237,10 +245,14 @@ while True:
                     continue
             except ValueError:
                 print("please enter a valid integer")
-                continue   
+                continue 
+            for product in question9:
                 product=product.strip().casefold()
-                if product not in all_products:
-                    print(f"{product} not found")
+                if not product:
+                    print("product cannot be emoty")
+                    continue
+                if product not in all_products:    
+                    print("product name cannot found")
                     continue
                     
                 item=all_products[product]
@@ -273,3 +285,5 @@ while True:
         elif employee ==table[7]:
             print("GOOD BYE...EXITING >")
             break
+    else:
+        print("invalid command")
