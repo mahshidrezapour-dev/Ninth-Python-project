@@ -30,8 +30,8 @@ def store(product =None):
     while True:
         try:
             count_in_box=int(input("count of product in a box >>> "))
-            if count_in_box <0:
-                print("count of product in a box  cannot be negative")
+            if count_in_box <=0:
+                print("count of product in a box  cannot be zero or less")
                 continue
             break
         except ValueError:
@@ -39,18 +39,14 @@ def store(product =None):
     while True:
         try:
             count_in_shelf=int(input("count in shelf"))
-            if count_in_shelf<0:
-                print("count in shelf cannot be negative")
-                continue
-            break
-        except ValueError:
-            print("please enter a valid integer")
-    while True:
-        try:
             inventory=int(input("Inventory of an item  : "))#موجودی
-            if  inventory<0:
+            if count_in_shelf < 0 or inventory < 0:
                 print("inventory cannot be negative")
                 continue
+          if  inventory < count_in_shelf:
+                print("inventory cannot be less than she;f stock")
+                continue
+            break
         except ValueError:
             print("please enter a valid integer")
             continue
@@ -105,15 +101,23 @@ def sale_history():
 
 all_products={}
 salehistory=[]
-#      0        1       2          3          4      5        6
-table=["add","delete","search","buy","sale history","restock","exit"]
-i=int(input("enter what the store has : "))
+#      0        1       2          3          4      5        6         7
+table=["add","delete","search","buy","sale history","restock","shelf","exit"]
+while True:
+    try:
+        i=int(input("enter what the store has : "))
+        if i <0:
+            print("number cannot be negative")
+            continue
+        break
+    except ValueError:
+        print("please enter a valid integer")
 for x in range (i):
     shelf=store()
     all_products[shelf["product"]]=shelf
 while True:
     employee=input("enter what you need >>>")
-    employee=employee.lower()
+    employee=employee.strip().casefold()
     if employee in table:
         if employee == table[0]:
             question1=input("enter what item is being added : ").strip().casefold()
@@ -126,7 +130,7 @@ while True:
                 available=True
         elif employee==table[1]:
             found=False
-            question2=input("what do you want to delete? ")
+            question2=input("what do you want to delete? ").strip().casefold()
             for product in list(all_products):
                 if all_products[product]["product"]==question2:
                     del all_products[product]
@@ -142,8 +146,6 @@ while True:
                 if question4 in all_products:
                     print(all_products[question4])
                     found=True
-            if not found:
-                print("not found")
             elif question3=="category":
                 question5=input("what category : ").strip().casefold()
                 for product in all_products.values():
@@ -152,6 +154,7 @@ while True:
                         found=True
             else:
                 print("invalid search option")
+                continue
             if not found:
                 print("NOT FOUND")
         elif employee==table[3]:
@@ -159,7 +162,10 @@ while True:
             question6=input("what item do you want to buy : ").split(",")
             question7=input("the count of each item").split(",")
             for x in range (len(question6)):
-                question6[x]=question6[x].strip().lower()
+                question6[x]=question6[x].strip().casefold()
+            if "" in question6:
+                print("product name cannot be empty")
+                continue
             for x in range (len(question7)):
                 question7[x]=question7[x].strip().lower()
             try:
@@ -175,7 +181,7 @@ while True:
             if any(x <= 0 for x in question7):
                 print("quantities must be positive")
                 continue
-            question7=[int(x) for x in question7]
+            
             totalprice=[]
             
 
@@ -189,19 +195,26 @@ while True:
                         if all_products[item]["count_in_shelf"]>=count:
                             print("available")
                             all_products[item]["count_in_shelf"]-=count
-                            
+                            all_products[item]["inventory"]-=count
+                            all_products[item]["available"] = (all_products[item]["count_in_shelf"] > 0)
                             totalprice.append(all_products[item]["cost"]*count)
                             total=all_products[item]["cost"]*count
                             buying["basket"]+=total
+                            all_products[item]["sale_times"]+=1
                             
-                        else:    
+                        else: 
+                            if count=0:
+                                print("this product is out of stock")
+                                continue
                             question8=input(f"only {countinshelf} is available . do you want it? ")
                             if question8.lower() in ["yes","y","yeah","ok"]:
                                 all_products[item]["count_in_shelf"]-=countinshelf
+                                all_products[item]["inventory"]-=countinshelf
+                                all_products[item]["available"] = (all_products[item]["count_in_shelf"] > 0)
                                 total=all_products[item]["cost"]*countinshelf
                                 buying["basket"]+=total
-                                
                                 totalprice.append(all_products[item]["cost"]*countinshelf)
+                                all_products[item]["sale_times"]+=1
                             else:
                                 pass
                     else:
@@ -225,7 +238,6 @@ while True:
             except ValueError:
                 print("please enter a valid integer")
                 continue   
-            for product in question9:
                 product=product.strip().casefold()
                 if product not in all_products:
                     print(f"{product} not found")
@@ -235,13 +247,29 @@ while True:
                 added_item=amount*item["count_in_box"]
                 item["box"]+=amount
                 item["inventory"]+=added_item
-                item["count_shelf"]+=added_item
-                item["available"]=True
                 print(f"{product}restocked successfully")
-                        
-            if not found:
-                print(f"{product} is new... NOT ELIGIBLE")
-                    
         elif employee==table[6]:
+            product=input("which product : ").strip().casefold()
+            if product not in all_products:
+                print("product not found")
+                continue
+            item=all_products[product]
+            try:
+                amount=int(input("how many items put in shelf? : "))
+                if amount <=0:
+                    print("amount must be positive")
+                    continue 
+                if amount > item["inventory"]-item["count_in_shelf"]:
+                    print("not enough item to storage")
+                    continue
+            except ValueError:
+                print("please enter a valid integer")
+                continue
+            item["count_in_shelf"]+=amount
+            item["available"]=item["count_in_shelf"]>0
+            print("items moved to shelf successfully")
+
+            
+        elif employee ==table[7]:
             print("GOOD BYE...EXITING >")
             break
